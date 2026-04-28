@@ -17,6 +17,23 @@ body { margin:0; overflow:hidden; background:black; }
     text-shadow:0 0 20px pink;
 }
 
+#days{
+    position:absolute;
+    top:80px;
+    width:100%;
+    text-align:center;
+    color:#ff69b4;
+    font-size:28px;
+    font-weight:bold;
+    text-shadow:0 0 15px #ff69b4;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 #musicBtn{
     position:fixed;
     bottom:20px;
@@ -33,7 +50,8 @@ body { margin:0; overflow:hidden; background:black; }
 
 <body>
 
-<div id="title">💖 Happy Anni 500d 💖</div>
+<div id="title">💖 Happy Anni  💖</div>
+<div id="days">Đang tải...</div>
 
 <button id="musicBtn">🎵 Bật nhạc</button>
 
@@ -42,6 +60,21 @@ body { margin:0; overflow:hidden; background:black; }
 </audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ===== COUNTDOWN FUNCTION =====
+function updateDays() {
+    const startDate = new Date('2024-12-15');
+    const today = new Date();
+    const diffTime = Math.abs(today - startDate);
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    document.getElementById('days').innerHTML = `✨ ${days.toLocaleString()} ngày bên nhau ✨`;
+}
+
+// Update ngay khi load và mỗi giây
+updateDays();
+setInterval(updateDays, 1000);
+</script>
 
 <script>
 // ===== SCENE =====
