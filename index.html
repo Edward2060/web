@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Happy Anni 500d 💖</title>
+
+<style>
+body { margin:0; overflow:hidden; background:black; }
+
+#title{
+    position:absolute;
+    top:20px;
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:40px;
+    text-shadow:0 0 20px pink;
+}
+
+#musicBtn{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#ff4d6d;
+    border:none;
+    padding:12px 18px;
+    border-radius:25px;
+    color:white;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="title">💖 Happy Anni 500d 💖</div>
+
+<button id="musicBtn">🎵 Bật nhạc</button>
+
+<audio id="bgMusic" loop>
+    <source src="hth.mp3" type="audio/mp3">
+</audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ===== SCENE =====
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
+camera.position.z = 800;
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// ===== GALAXY =====
+const starGeo = new THREE.BufferGeometry();
+const starCount = 1000;
+const pos = [], colors=[];
+
+for(let i=0;i<starCount;i++){
+    pos.push((Math.random()-0.5)*2000,(Math.random()-0.5)*2000,(Math.random()-0.5)*2000);
+    const c=new THREE.Color(Math.random(),Math.random(),Math.random());
+    colors.push(c.r,c.g,c.b);
+}
+
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+starGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+
+const starMat=new THREE.PointsMaterial({size:2,vertexColors:true,transparent:true});
+const stars=new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// ===== PARTICLE TEXT =====
+function createTextParticles(text){
+    const canvas=document.createElement("canvas");
+    const ctx=canvas.getContext("2d");
+    canvas.width=600; canvas.height=200;
+
+    ctx.fillStyle="white";
+    ctx.font="bold 100px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(text,300,130);
+
+    const data=ctx.getImageData(0,0,600,200).data;
+    const arr=[];
+
+    for(let y=0;y<200;y+=4){
+        for(let x=0;x<600;x+=4){
+            if(data[(y*600+x)*4+3]>128){
+                arr.push(x-300,100-y,0);
+            }
+        }
+    }
+    return arr;
+}
+
+function createHeartShape(count){
+    const arr=[];
+    for(let i=0;i<count;i++){
+        const t=Math.random()*Math.PI*2;
+        const x=16*Math.pow(Math.sin(t),3);
+        const y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+        arr.push(x*8,y*8,(Math.random()-0.5)*20);
+    }
+    return arr;
+}
+
+const textPos=createTextParticles("Iuuuu B.Nhỏ");
+
+const geo=new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.Float32BufferAttribute(textPos,3));
+
+const col=[];
+for(let i=0;i<textPos.length/3;i++){
+    const c=new THREE.Color(0xff69b4);
+    col.push(c.r,c.g,c.b);
+}
+geo.setAttribute('color', new THREE.Float32BufferAttribute(col,3));
+
+const mat=new THREE.PointsMaterial({
+    size:3,
+    vertexColors:true,
+    transparent:true,
+    blending:THREE.AdditiveBlending
+});
+
+const particles=new THREE.Points(geo,mat);
+particles.position.y=-150;
+scene.add(particles);
+
+let target=textPos.slice();
+setTimeout(()=> target=createHeartShape(textPos.length/3),5000);
+
+// ===== ẢNH ORBIT =====
+const loader=new THREE.TextureLoader();
+const imgs=["img1.jpg","img2.jpg","img3.jpg","img4.jpg","img5.jpg", "img6.jpg", "img7.jpg", "img8.jpg", "img9.jpg", "img10.jpg", "img11.jpg", "img12.jpg"];
+const items=[];
+
+for(let i=0;i<12;i++){
+    loader.load(imgs[i%imgs.length], tex=>{
+        const mesh=new THREE.Mesh(
+            new THREE.PlaneGeometry(100,100),
+            new THREE.MeshBasicMaterial({map:tex,transparent:true})
+        );
+
+        mesh.userData={
+            angle:Math.random()*Math.PI*2,
+            radius:250+Math.random()*100,
+            speed:0.002+Math.random()*0.003,
+            yOffset:(i%2===0?-100:100)
+        };
+
+        scene.add(mesh);
+        items.push(mesh);
+    });
+}
+
+// ===== AUDIO =====
+const audio=document.getElementById("bgMusic");
+const btn=document.getElementById("musicBtn");
+
+const ctxAudio=new (window.AudioContext||window.webkitAudioContext)();
+const src=ctxAudio.createMediaElementSource(audio);
+const analyser=ctxAudio.createAnalyser();
+analyser.fftSize=256;
+
+src.connect(analyser);
+analyser.connect(ctxAudio.destination);
+
+const dataArray=new Uint8Array(analyser.frequencyBinCount);
+let level=0;
+
+// ===== ANIMATE =====
+function animate(){
+    requestAnimationFrame(animate);
+
+    analyser.getByteFrequencyData(dataArray);
+    let sum=0;
+    for(let i=0;i<dataArray.length;i++) sum+=dataArray[i];
+    level=sum/dataArray.length/255;
+
+    // ===== ORBIT ẢNH =====
+    items.forEach(a=>{
+        a.userData.angle += a.userData.speed + level*0.01;
+
+        a.position.x = Math.cos(a.userData.angle)*a.userData.radius;
+        a.position.z = Math.sin(a.userData.angle)*a.userData.radius;
+
+        a.position.y = a.userData.yOffset + Math.sin(Date.now()*0.002)*20;
+
+        a.lookAt(0,-150,0);
+    });
+
+    // ===== PARTICLE =====
+    const p=particles.geometry.attributes.position;
+    const c=particles.geometry.attributes.color;
+
+    for(let i=0;i<p.count;i++){
+        let tx=target[i*3], ty=target[i*3+1], tz=target[i*3+2];
+
+        let x=p.getX(i), y=p.getY(i), z=p.getZ(i);
+
+        x+=(tx-x)*(0.05+level*0.2);
+        y+=(ty-y)*(0.05+level*0.2);
+        z+=(tz-z)*(0.05+level*0.2);
+
+        z+=Math.sin(Date.now()*0.01+i)*level*20;
+
+        p.setXYZ(i,x,y,z);
+
+        const t=Date.now()*0.002;
+        c.setXYZ(i,
+            (Math.sin(t+i)+1)/2,
+            (Math.sin(t+i+2)+1)/2,
+            (Math.sin(t+i+4)+1)/2
+        );
+    }
+
+    p.needsUpdate=true;
+    c.needsUpdate=true;
+
+    // galaxy
+    stars.rotation.y+=0.0005+level*0.01;
+    starMat.opacity=0.5+level;
+
+    renderer.render(scene,camera);
+}
+animate();
+
+// ===== CAMERA =====
+document.addEventListener("mousemove", e=>{
+    camera.position.x=(e.clientX/window.innerWidth-0.5)*200;
+    camera.position.y=-(e.clientY/window.innerHeight-0.5)*200;
+    camera.lookAt(scene.position);
+});
+
+// ===== MUSIC =====
+let play=false;
+btn.onclick=async()=>{
+    if(ctxAudio.state==="suspended") await ctxAudio.resume();
+
+    if(!play){
+        audio.play();
+        btn.innerText="🔇 Tắt nhạc";
+    }else{
+        audio.pause();
+        btn.innerText="🎵 Bật nhạc";
+    }
+    play=!play;
+};
+
+// ===== RESIZE =====
+window.addEventListener("resize",()=>{
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+});
+</script>
+
+</body>
+</html>
