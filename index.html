@@ -108,7 +108,7 @@ function updateDays() {
     const today = new Date();
     const diffTime = Math.abs(today - startDate);
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    document.getElementById('days').innerHTML = `✨ ${days.toLocaleString()}  ✨`;
+    document.getElementById('days').innerHTML = `✨ ${days.toLocaleString()}  days ✨`;
 }
 
 // Update ngay khi load và mỗi giây
