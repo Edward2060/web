@@ -45,6 +45,19 @@ body { margin:0; overflow:hidden; background:black; }
     color:white;
     cursor:pointer;
 }
+
+#currentSong{
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    background:rgba(255,105,180,0.8);
+    border:none;
+    padding:8px 15px;
+    border-radius:20px;
+    color:white;
+    font-size:12px;
+    backdrop-filter: blur(10px);
+}
 </style>
 </head>
 
@@ -54,21 +67,48 @@ body { margin:0; overflow:hidden; background:black; }
 <div id="days">Đang tải...</div>
 
 <button id="musicBtn">🎵 Bật nhạc</button>
+<div id="currentSong">Đang chọn bài hát...</div>
 
-<audio id="bgMusic" loop>
-    <source src="hth.mp3" type="audio/mp3">
+<!-- Nhiều bài hát -->
+<audio id="bgMusic" loop preload="auto">
+    <source src="" type="audio/mp3">
 </audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
+// ===== DANH SÁCH BÀI HÁT =====
+const songs = [
+    {name: "Bài hát 1 💕", src: "NILGNHN.mp3"},
+    {name: "Bài hát 2 🌸", src: "CTKAV.mp3"},
+    {name: "Bài hát 3 ⭐", src: "KTS.mp3"},
+    {name: "Bài hát 4 💖", src: "DCAIN.mp3"},
+    
+    // Thêm các bài hát khác của bạn ở đây
+];
+
+// Chọn ngẫu nhiên 1 bài hát khi load trang
+function selectRandomSong() {
+    const randomIndex = Math.floor(Math.random() * songs.length);
+    const selectedSong = songs[randomIndex];
+    
+    const audio = document.getElementById("bgMusic");
+    const currentSongDiv = document.getElementById("currentSong");
+    
+    audio.src = selectedSong.src;
+    currentSongDiv.innerHTML = `🎵 ${selectedSong.name}`;
+    
+    console.log(`Đã chọn: ${selectedSong.name}`);
+    return selectedSong;
+}
+
 // ===== COUNTDOWN FUNCTION =====
 function updateDays() {
     const startDate = new Date('2024-12-15');
     const today = new Date();
     const diffTime = Math.abs(today - startDate);
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    document.getElementById('days').innerHTML = `✨ ${days.toLocaleString()} ngày bên nhau ✨`;
+    document.getElementById('days').innerHTML = `✨ ${days.toLocaleString()}  ✨`;
 }
 
 // Update ngay khi load và mỗi giây
@@ -194,6 +234,9 @@ for(let i=0;i<12;i++){
 const audio=document.getElementById("bgMusic");
 const btn=document.getElementById("musicBtn");
 
+// Chọn bài hát ngẫu nhiên khi load trang
+const currentSong = selectRandomSong();
+
 const ctxAudio=new (window.AudioContext||window.webkitAudioContext)();
 const src=ctxAudio.createMediaElementSource(audio);
 const analyser=ctxAudio.createAnalyser();
@@ -269,7 +312,7 @@ document.addEventListener("mousemove", e=>{
     camera.lookAt(scene.position);
 });
 
-// ===== MUSIC =====
+// ===== MUSIC CONTROL =====
 let play=false;
 btn.onclick=async()=>{
     if(ctxAudio.state==="suspended") await ctxAudio.resume();
